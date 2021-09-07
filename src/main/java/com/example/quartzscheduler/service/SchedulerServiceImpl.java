@@ -25,14 +25,17 @@ public class SchedulerServiceImpl implements ISchedulerService {
     }
 
     @Override
-    public <T extends Job> void schedule(Class<T> jobClass, TimerInfo info) {
-        final JobDetail jobDetail = TimerUtils.buildJobDetail(jobClass, info);
-        final Trigger trigger = TimerUtils.buildTrigger(jobClass, info);
+    public <T extends Job> boolean schedule(Class<T> jobClass, String idJobClass, int time) {
+
+        final JobDetail jobDetail = TimerUtils.buildJobDetail(jobClass, idJobClass);
+        final Trigger trigger = TimerUtils.buildTrigger(jobClass, time);
 
         try {
             scheduler.scheduleJob(jobDetail, trigger);
+            return true;
         } catch (SchedulerException e) {
-            LOGGER.error("Không Thể Tạo Job !", e);
+            LOGGER.error("Không Thể Tạo Job Có Job Đã Tồn Tại Hoặc Job Này Đang Chạy !", e);
+            return false;
         }
     }
 
@@ -92,7 +95,7 @@ public class SchedulerServiceImpl implements ISchedulerService {
     }
 
     @Override
-    public Boolean deleteTimer(String timerId) {
+    public Boolean deleteJob(String timerId) {
         try {
             return scheduler.deleteJob(new JobKey(timerId));
         } catch (SchedulerException e) {
@@ -105,7 +108,7 @@ public class SchedulerServiceImpl implements ISchedulerService {
     public void init() {
         try {
             scheduler.start();
-            scheduler.getListenerManager().addTriggerListener(new SimpleTriggerListener(this));
+//            scheduler.getListenerManager().addTriggerListener(new SimpleTriggerListener(this));
         } catch (SchedulerException e) {
             LOGGER.error(e.getMessage(), e);
         }

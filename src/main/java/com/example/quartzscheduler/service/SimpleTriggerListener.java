@@ -1,12 +1,13 @@
 package com.example.quartzscheduler.service;
 
-import com.example.quartzscheduler.info.TimerInfo;
-import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 import org.quartz.Trigger;
 import org.quartz.TriggerListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class SimpleTriggerListener implements TriggerListener {
+    private static final Logger LOGGER = LoggerFactory.getLogger(SimpleTriggerListener.class);
     private final ISchedulerService schedulerService;
 
     public SimpleTriggerListener(ISchedulerService schedulerService) {
@@ -15,26 +16,14 @@ public class SimpleTriggerListener implements TriggerListener {
 
     @Override
     public String getName() {
-        return SimpleTriggerListener.class.getSimpleName();
+        return "globalTrigger";
     }
 
     @Override
     public void triggerFired(Trigger trigger, JobExecutionContext context) {
-        final String timerId = trigger.getKey().getName();
+        String jobName = trigger.getJobKey().getName();
+        LOGGER.info("Job name: " + jobName + " is fired");
 
-        final JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
-        final TimerInfo info = (TimerInfo) jobDataMap.get(timerId);
-
-        if (!info.isRunForever()) {
-            int remainingFireCount = info.getRemainingFireCount();
-            if (remainingFireCount == 0) {
-                return;
-            }
-
-            info.setRemainingFireCount(remainingFireCount - 1);
-        }
-
-        schedulerService.updateTimer(timerId, info);
     }
 
     @Override
@@ -44,12 +33,14 @@ public class SimpleTriggerListener implements TriggerListener {
 
     @Override
     public void triggerMisfired(Trigger trigger) {
-
+        String jobName = trigger.getJobKey().getName();
+        LOGGER.info("Job name: " + jobName + " is misfired");
     }
 
     @Override
     public void triggerComplete(Trigger trigger, JobExecutionContext context,
                                 Trigger.CompletedExecutionInstruction triggerInstructionCode) {
-
+        String jobName = trigger.getJobKey().getName();
+        LOGGER.info("Job name: " + jobName + " is completed");
     }
 }

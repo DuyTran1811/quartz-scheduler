@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ISchedulerService {
 
-    <T extends Job> void schedule(final Class<T> jobClass, final TimerInfo info);
+    <T extends Job> boolean schedule(final Class<T> jobClass, final String idJobClass, int time);
 
     List<TimerInfo> getAllRunningTimers();
 
@@ -15,5 +15,5 @@ public interface ISchedulerService {
 
     void updateTimer(final String timerId, final TimerInfo info);
 
-    Boolean deleteTimer(final String timerId);
+    Boolean deleteJob(final String timerId);
 }
