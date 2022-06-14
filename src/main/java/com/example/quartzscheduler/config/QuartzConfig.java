@@ -13,7 +13,7 @@ import java.util.Properties;
 
 @Configuration
 public class QuartzConfig {
-    ApplicationContext applicationContext;
+   private final ApplicationContext applicationContext;
 
     public QuartzConfig(ApplicationContext applicationContext) {
         this.applicationContext = applicationContext;
@@ -30,15 +30,13 @@ public class QuartzConfig {
     public SchedulerFactoryBean schedulerFactoryBean() throws IOException {
         SchedulerFactoryBean schedulerFactory = new SchedulerFactoryBean();
         schedulerFactory.setQuartzProperties(quartzProperties());
-        schedulerFactory.setWaitForJobsToCompleteOnShutdown(true);
-        schedulerFactory.setAutoStartup(true);
         schedulerFactory.setJobFactory(jobFactory());
         return schedulerFactory;
     }
 
     public Properties quartzProperties() throws IOException {
         PropertiesFactoryBean propertiesFactoryBean = new PropertiesFactoryBean();
-        propertiesFactoryBean.setLocation(new ClassPathResource("/quartz.properties"));
+        propertiesFactoryBean.setLocation(new ClassPathResource("/application.yaml"));
         propertiesFactoryBean.afterPropertiesSet();
         return propertiesFactoryBean.getObject();
     }

@@ -1,16 +1,16 @@
 package com.example.quartzscheduler.service;
 
 import com.example.quartzscheduler.info.TimerInfo;
-import com.example.quartzscheduler.util.TimerUtils;
+import com.example.quartzscheduler.util.JobUtils;
 import org.quartz.*;
+import org.quartz.impl.calendar.HolidayCalendar;
 import org.quartz.impl.matchers.GroupMatcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -25,17 +25,15 @@ public class SchedulerServiceImpl implements ISchedulerService {
     }
 
     @Override
-    public <T extends Job> boolean schedule(Class<T> jobClass, String idJobClass, int time) {
-
-        final JobDetail jobDetail = TimerUtils.buildJobDetail(jobClass, idJobClass);
-        final Trigger trigger = TimerUtils.buildTrigger(jobClass, time);
+    public <T extends Job> void createdSchedule(Class<T> jobClass, TimerInfo configInfo) {
+        final JobDetail jobDetail = JobUtils.buildJobDetail(jobClass, configInfo);
+        final Trigger trigger = JobUtils.buildTrigger(jobClass, configInfo);
 
         try {
-            scheduler.scheduleJob(jobDetail, trigger);
-            return true;
-        } catch (SchedulerException e) {
-            LOGGER.error("Không Thể Tạo Job Có Job Đã Tồn Tại Hoặc Job Này Đang Chạy !", e);
-            return false;
+            Date time = scheduler.scheduleJob(jobDetail, trigger);
+            LOGGER.info("Was created at ! {}", time);
+        } catch (SchedulerException exception) {
+            LOGGER.error("Job cannot be created !", exception);
         }
     }
 
@@ -87,7 +85,6 @@ public class SchedulerServiceImpl implements ISchedulerService {
             }
 
             jobDetail.getJobDataMap().put(timerId, info);
-
             scheduler.addJob(jobDetail, true, true);
         } catch (final SchedulerException e) {
             LOGGER.error(e.getMessage(), e);
@@ -95,31 +92,12 @@ public class SchedulerServiceImpl implements ISchedulerService {
     }
 
     @Override
-    public Boolean deleteJob(String timerId) {
+    public Boolean deleteJob(String keyJob) {
         try {
-            return scheduler.deleteJob(new JobKey(timerId));
+            return scheduler.deleteJob(new JobKey(keyJob));
         } catch (SchedulerException e) {
             LOGGER.error(e.getMessage(), e);
             return false;
-        }
-    }
-
-    @PostConstruct
-    public void init() {
-        try {
-            scheduler.start();
-//            scheduler.getListenerManager().addTriggerListener(new SimpleTriggerListener(this));
-        } catch (SchedulerException e) {
-            LOGGER.error(e.getMessage(), e);
-        }
-    }
-
-    @PreDestroy
-    public void preDestroy() {
-        try {
-            scheduler.shutdown();
-        } catch (SchedulerException e) {
-            LOGGER.error(e.getMessage(), e);
         }
     }
 }

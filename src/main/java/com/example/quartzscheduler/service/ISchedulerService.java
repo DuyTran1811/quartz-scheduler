@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface ISchedulerService {
 
-    <T extends Job> boolean schedule(final Class<T> jobClass, final String idJobClass, int time);
+    <T extends Job> void createdSchedule(final Class<T> jobClass, TimerInfo configInfo);
 
     List<TimerInfo> getAllRunningTimers();
 
